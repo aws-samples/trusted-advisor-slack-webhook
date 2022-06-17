@@ -1,6 +1,6 @@
 # TrustedAdvisor-Slack-Webhook
 
-Use this automated solution to get notified about high priority Trusted Advisor checks on Slack. High priority Trusted Advisor checks require further investigation as they help you secure and optimize your account to align with AWS best practices. Notifications to Slack are sent at a preconfigured schedule, defined as a scheduled rule in Amazon EventBridge. 
+Use this automated solution to get notified about high priority Trusted Advisor checks on Slack. High priority Trusted Advisor checks require further investigation as they help you secure and optimize your account to align with AWS best practices. Notifications to Slack are sent at a preconfigured interval, defined as a scheduled event rule in Amazon EventBridge. 
 
 Deploying this solution automates checking and receiving critical alerts from Trusted Advisor, in near real-time, delivered to a preconfigured Slack channel.
 
@@ -55,7 +55,7 @@ Enter an interval for the scheduler to run, e.g. every 12 hours, etc., or an Eve
 2. SlackWebhookURL
 Enter the Slack Webhook URL you created earlier as the input event to the Lambda function in JSON, as shown below
 {
-  "SlackWebhookURL": "<Replace with Slack Webhook URL you created earlier>"
+  "SlackWebhookURL":"<Replace with Slack Webhook URL you created earlier>"
 }
 
 ### Manual Deployment – Step by Step
