@@ -1,37 +1,36 @@
 # TrustedAdvisor-Slack-Webhook
 
-Use this automated solution to get notified about high priority Trusted Advisor checks on Slack. High priority Trusted Advisor checks require further investigation as they help you secure and optimize your account to align with AWS best practices. Notifications to Slack are sent at a preconfigured interval, defined as a scheduled event rule in Amazon EventBridge. 
-
-Deploying this solution automates checking and receiving critical alerts from Trusted Advisor, in near real-time, delivered to a preconfigured Slack channel.
+Use this automated solution to get notified about high priority Trusted Advisor checks in Slack. High priority Trusted Advisor checks require further investigation as they help you secure and optimize your account to align with AWS best practices. Notifications are classified by risk category (Security, Fault Tolerance, Performance, Cost and Service Limits) and sent to Slack at a preconfigured interval.  Configure the notification interval as a scheduled event rule in Amazon EventBridge. Modify the included python script to customize the solution further to meet your requirements.
 
 
 ## Solution Overview
-The following diagram illustrates how the solution works:
+Deploying this solution automates the process of checking, and delivery of critical alerts from Trusted Advisor to a preconfigured Slack channel via an incoming webhook.
+
+The following diagram illustrates how the solution works,
 
 ![image](./TA-Slack-Arch.PNG)
 
 ## Prerequisites
-Create an incoming Slack Webhook. Incoming Webhooks are a simple way to post messages from apps into Slack. Creating an incoming Webhook gives you a unique URL to which you send a JSON payload with the message text and some options. 
+Create an incoming Slack Webhook. Incoming webhooks are a simple way to post messages from 3rd party apps into Slack. Creating an incoming Webhook gives you a unique URL to which you send a JSON payload with the message text and some options.
 
-Refer to the link below for instructions to create an incoming Slack webhook 
-https://api.slack.com/messaging/webhooks
+Refer to the link below for instructions to create an incoming Slack webhook https://api.slack.com/messaging/webhooks
 
-Copy and save the Slack webhook URL somewhere in a local text file. We will pass this ULR to the Lambda function to post curated events from Trusted Advisor to a Slack channel. 
+Copy and save the Slack webhook URL somewhere in a local text file. We will use it later when deploying the solution. Pass this ULR to the Lambda function to post curated events from Trusted Advisor to a Slack channel.
 
-The webhook URL should look something like this
-https://hooks.slack.com/workflows/T01631ABCD/A03PQRST/12345678/ab6c20hdWBZabcd
+The webhook URL should look something like this https://hooks.slack.com/workflows/T01234ABCD/A03PQRST/12345678/ab6c20hdWBZabcd
+
 
 ## How it works
     1. An EventBridge rule is configured to invoke a Lambda function on a pre-configured schedule. For example, hourly, every 12 hours,daily, etc.
 
     2. EventBridge invokes the Lambda function and passes the Slack Webhook URL as an argument to the Lambda function.The JSON input event to the Lambda function look something like this,              
        {
-          "SlackWebhookURL": "https://hooks.slack.com/workflows/T01631ABCD/A03PQRST/12345678/ab6c20hdWBZabcd"
+          "SlackWebhookURL": "https://hooks.slack.com/workflows/T01234ABCD/A03PQRST/12345678/ab6c20hdWBZabcd"
        }
 
     3. Lambda invokes Trusted Advisor APIs to get the current point in time status of all checks that are in the RED (Action Required) state
 
-    4. Lambda formats the response from Trusted Advisor and posts the results to Slack using the incoming Slack webhook.
+    4. Lambda formats the response from Trusted Advisor, and sends a summary of all checks, along with details of all open high-risk items to Slack, organized by risk category (Security, Fault Tolerance, Performance, Cost and Service Limits).
 
 ## Deploy the solution
 
@@ -56,7 +55,7 @@ Ref: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-sch
 **2. SlackWebhookURL**
 Enter the Slack Webhook URL you created earlier as the input event to the Lambda function in JSON, as shown below,  
 {
-  "SlackWebhookURL": "https://hooks.slack.com/workflows/T01631ABCD/A03PQRST/12345678/ab6c20hdWBZabcd"
+  "SlackWebhookURL":"https://hooks.slack.com/workflows/T01234ABCD/A03PQRST/12345678/ab6c20hdWBZabcd"
 }
 
 ### Manual Deployment – Step by Step
@@ -87,7 +86,8 @@ The steps below let you manually deploy and customize the solution to meet your 
         ]
       }
 
-    For additional details, refer to the product documentation at,
+    For additional details on configuring the Lambda execution role, see
+    
     ### AWS Lambda execution role
     https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
 
@@ -102,7 +102,7 @@ The steps below let you manually deploy and customize the solution to meet your 
            {
               "SlackWebhookURL": "<Replace with Slack Webhook URL you created earlier>"
            }
-       - You may leave other settings as default, or refer to the product documentation for additional details. 
+       - You may leave other settings as default, or refer to the product documentation for additional details at, 
          Ref: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html
        - Review and Create rule. 
 
