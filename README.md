@@ -106,7 +106,7 @@ The steps below let you manually deploy and customize the solution to meet your 
          Ref: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html
        - Review and Create rule. 
 
-       For more information about creating an Amazon EventBridge rule that runs on a schedule, see
+       For more information about creating an Amazon EventBridge rule that runs on a schedule, see  
        https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html
 
 ## Security
