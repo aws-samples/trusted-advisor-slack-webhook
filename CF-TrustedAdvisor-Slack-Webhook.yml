@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  ScheduleExpression:
+    Type: String
+    Description: "Enter an interval for the scheduler to run, e.g. every 12 hours, etc., or a EventBridge cron job pattern"
+    Default: "rate(12 hours)"
+  SlackWebhookURL:
+    Type: String
+    Description: "Enter the Slack Webhook URL as the input event to the Lambda function in JSON format {\"SlackWebhookURL\":\"<Replace with Slack Webhook URL you created earlier>\"}"
+    Default: "{\"SlackWebhookURL\":\"<Replace with Slack Webhook URL you created earlier>\"}"
+
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Description: Lambda function to send status of Trusted Advisor checks to Slack
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Timeout: 30
+      Code: 
+        ZipFile: |
+            ##############################
+           
+            import boto3
+            import json
+            #import requests
+            import urllib.parse
+            import urllib.request
+           
+            def lambda_handler(event, context):
+               
+               print(json.dumps(event))
+               slack_webhook_url = event["SlackWebhookURL"]
+               client = boto3.client('support', region_name='us-east-1')
+               response = client.describe_trusted_advisor_checks(language='en') 
+               #print("Check Summaries....\n\n\n")
+        
+               ##Number of elements returned
+               num_checks = len(response["checks"])
+        
+               ##Create List of TA CheckIds
+               checks = []
+               ta_checks_dict = {}
+               for x in range(num_checks):
+                  checks.append(response["checks"][x]["id"])
+                  
+                  ##Store TA Checks in nested dict for cross referencing via TA check Id
+                  ta_checks_dict[response["checks"][x]["id"]] = {"name":response["checks"][x]["name"],"category":response["checks"][x]["category"]}
+
+               ##Get TA Check Summaries
+               result = client.describe_trusted_advisor_check_summaries(checkIds=checks)
+        
+               count_ok = 0
+               count_critical = 0
+               count_warn = 0
+               message = ""
+               summary = ""
+        
+               for x in range(num_checks):
+                  check_status = result['summaries'][x]['status']
+                  check_id = result['summaries'][x]['checkId']
+                  #print(check_status)
+        
+                  if(check_status == 'ok'):
+                    count_ok += 1
+                  elif(check_status == 'warning'):
+                    count_warn += 1
+                  elif(check_status == 'error'):
+                    count_critical += 1
+                    message += "HIGH RISK  - " + "[" + str(ta_checks_dict[check_id]['category'])+ "] " + str(ta_checks_dict[check_id]['name']) + "\n"
+                  else:
+                   #print("Check Status Undefined : ", str(check_status))
+                   continue
+        
+               #print("\n========= Summary of Trusted Advisor Findings =======\n")
+               summary += "\n========= Summary of Trusted Advisor Findings =======\n\n"
+        
+               #print("GREEN - OK = ", count_ok)
+               summary += "GREEN - OK = " + str(count_ok)  + "\n"
+        
+               #print("YELLOW (Investigate) = ", count_warn)
+               summary += "YELLOW (Investigate) = " + str(count_warn)  + "\n"
+        
+               #print("RED (High Risk) = ", count_critical)
+               summary += "RED (High Risk) = " + str(count_critical)  + "\n\n"
+        
+               #print("\n\n========== SLACK OUTPUT ===========")
+               #print(summary)
+               #print(message)
+        
+               print("============= Post to Slack ===========")
+    
+               headers = {
+                  'Content-type': 'application/json'
+               }
+        
+               data = "{content:" + '"' + summary + message + '"}'
+        
+               ## NOT USING Python "requests" library to avoid creating Lambda Layer in CloudFormation. Preserve CF portability
+               #response = requests.post(slack_webhook_url, headers=headers, data=data)
+        
+               ## USING Python "urllib" instead
+        
+               data = data.encode('ascii')
+               #print("DATA_4: ", data)
+        
+               headers = {}
+               headers['Content-Type'] = "application/json"
+        
+               ## Send the request
+               print("URL = ", slack_webhook_url)
+               req = urllib.request.Request(slack_webhook_url, data=data, headers=headers)
+               resp = urllib.request.urlopen(req)
+     
+               ## Receive the response
+               #respData = resp.read()
+               #print("RESPONSE: ", respData)
+    
+               return {
+                 'statusCode': 200
+               }
+
+               ##############################
+             
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Lambda Role to access Trusted Advisor
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/ReadOnlyAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'           
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: Allow-TA-Access
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            -  'support:DescribeTrustedAdvisorCheckRefreshStatuses'
+            -  'support:DescribeTrustedAdvisorCheckResult'
+            -  'support:DescribeTrustedAdvisorCheckSummaries'
+            -  'support:DescribeTrustedAdvisorChecks'
+            Resource: '*'
+  ScheduledRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: Scheduler for Lambda Function - TrustedAdvisorSlackEvents
+      ScheduleExpression: !Ref ScheduleExpression
+      State: "ENABLED"
+      Targets: 
+        - Arn: !GetAtt LambdaFunction.Arn
+          Id: "TargetFunction"
+          Input: !Ref SlackWebhookURL
+  InvokeLambdaPermission: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt ScheduledRule.Arn
