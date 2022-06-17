@@ -37,10 +37,10 @@ https://hooks.slack.com/workflows/T01631ABCD/A03PQRST/12345678/ab6c20hdWBZabcd
 
 The solution includes the following files
 
-#### TrustedAdvisor-Slack-Webhook.py
+**TrustedAdvisor-Slack-Webhook.py**  
 Python script for the Lambda function. 
 
-#### CF-TrustedAdvisor-Slack-Webhook.yml
+**CF-TrustedAdvisor-Slack-Webhook.yml**  
 CloudFormation template, with inline code to automatically deploy the solution.   
 
 
@@ -48,14 +48,15 @@ CloudFormation template, with inline code to automatically deploy the solution.
 
 Use the CloudFormation template CF-TrustedAdvisor-Slack-Webhook.yml to deploy the solution.  Provide the following inputs to CloudFormation input parameters when prompted,
 
-1. ScheduleExpression 
-Enter an interval for the scheduler to run, e.g. every 12 hours, etc., or an EventBridge cron pattern. Ref: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html#eb-rate-expressions
+**1. ScheduleExpression**
+Enter an interval for the scheduler to run, e.g. every 12 hours, etc., or an EventBridge cron pattern.  
+Ref: https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html#eb-rate-expressions
 
 
-2. SlackWebhookURL
-Enter the Slack Webhook URL you created earlier as the input event to the Lambda function in JSON, as shown below
+**2. SlackWebhookURL**
+Enter the Slack Webhook URL you created earlier as the input event to the Lambda function in JSON, as shown below,  
 {
-  "SlackWebhookURL":"<Replace with Slack Webhook URL you created earlier>"
+  "SlackWebhookURL": "https://hooks.slack.com/workflows/T01631ABCD/A03PQRST/12345678/ab6c20hdWBZabcd"
 }
 
 ### Manual Deployment – Step by Step
