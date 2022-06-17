@@ -83,7 +83,7 @@ Resources:
                summary += "YELLOW (Investigate) = " + str(count_warn)  + "\n"
         
                #print("RED (High Risk) = ", count_critical)
-               summary += "RED (High Risk) = " + str(count_critical)  + "\n\n"
+               summary += "RED (High Risk - Action Required) = " + str(count_critical)  + "\n\n"
         
                #print("\n\n========== SLACK OUTPUT ===========")
                #print(summary)
