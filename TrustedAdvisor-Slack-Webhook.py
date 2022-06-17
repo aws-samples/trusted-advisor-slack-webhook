@@ -81,7 +81,6 @@ def lambda_handler(event, context):
    ## USING Python "urllib" instead
 
    data = data.encode('ascii')
-   #print("DATA_4: ", data)
 
    headers = {}
    headers['Content-Type'] = "application/json"
