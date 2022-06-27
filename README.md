@@ -1,4 +1,4 @@
-# TrustedAdvisor-Slack-Webhook
+# Receive high risk findings from Trusted Advisor in Slack
 
 Use this automated solution to get notified about high priority Trusted Advisor checks in Slack. High priority Trusted Advisor checks require further investigation as they help you secure and optimize your account to align with AWS best practices. Notifications are classified by risk category (Security, Fault Tolerance, Performance, Cost and Service Limits) and sent to Slack at a preconfigured interval.  Configure the notification interval as a scheduled event rule in Amazon EventBridge. Modify the included python script to customize the solution further to meet your requirements.
 
